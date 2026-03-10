@@ -1,46 +1,16 @@
+# Worldview — Video Swarm Intelligence Roadmap
 
+A **compression-first video intelligence and creation platform** built on the Calculus Swarm architecture. Instead of sending raw video to large multimodal models, the platform converts video into **compressed semantic events**, enabling scalable reasoning, search, automation, and generation at a fraction of the compute cost.
 
-* video **surveillance**
-* video **creation / synthesis**
-* **compression-first architecture**
-* integration with **Triton + Swarm**
-* use of **cell → dot → small → medium → large**
-* interaction with **email, EDGAR, and other data sources**
-
-You can place this in a repo such as:
+**Core Principle**: The system does not analyze or generate raw video directly. It compresses video into semantic events, then reasons on — or reconstructs from — those events.
 
 ```text
-video-swarm
-video-intelligence
-video-unity
+video → perception → compression → semantic events → swarm reasoning / generation
 ```
 
 ---
 
-# Video Swarm Intelligence
-
-A **compression-first video intelligence and creation platform** built on the Calculus Swarm architecture.
-
-The system performs both:
-
-* **Video Surveillance / Monitoring**
-* **Video Creation / Synthesis**
-
-Instead of sending raw video to large multimodal models, the platform converts video into **compressed semantic events**, enabling scalable reasoning, search, and automation.
-
-```text
-video
-→ perception
-→ compression
-→ semantic events
-→ swarm reasoning
-```
-
-This dramatically reduces compute cost while improving accuracy and explainability.
-
----
-
-# System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -67,449 +37,193 @@ J --> L[Search Queries]
 J --> M[Reports]
 J --> N[Automation]
 
+I --> O[Video Generation]
+O --> P[Keyframe Store]
+P --> Q[GPU Reconstruction]
+Q --> R[Output Video]
 ```
 
-The system separates **perception, memory, and reasoning**.
+The system separates **perception, memory, reasoning, and generation** into distinct layers.
 
 ---
 
-# Related Repositories
+## Ecosystem Integration
 
-This platform works with multiple repositories.
+| Repository | Role | Integration |
+|------------|------|-------------|
+| **Triton** | Model runtime, GPU inference, ternary models, perception models | Vision model hosting (YOLO, CLIP, OCR), inference server |
+| **super-duper-spork** | Swarm orchestration, routing, governance | Task routing via cell → dot → small → medium → large → cloud cascade |
+| **BUNNY** | Edge workers, encrypted comms, distributed compute | Distributed video generation workers, QUIC transport |
+| **Quantum-Protocol** | Financial trading platform | Alert explanation, incident summaries (AI read-only) |
+| **DFIP** | Financial infrastructure | Compliance interpretation, document reasoning |
+| **Constitutional-Tender** | Web terminal UI | Product assistant, knowledge search via dot → small → medium |
 
-## Triton
+### Triton Model Ladder
 
-```
-/workspaces/Triton
-```
+| Model | Purpose |
+|-------|---------|
+| cell | classification / routing |
+| dot | normalization |
+| ultra_micro | packet compression |
+| micro | cheap worker |
+| ternary_tiny | helper tier |
+| ternary_small | default worker |
+| ternary_medium | judge / reasoning |
+| ternary_large | premium synthesis |
 
-Responsibilities:
+### Vision Models
 
-* model runtime
-* GPU inference
-* ternary models
-* perception models
-
-Models deployed:
-
-| Model          | Purpose                  |
-| -------------- | ------------------------ |
-| cell           | classification / routing |
-| dot            | normalization            |
-| ultra_micro    | packet compression       |
-| micro          | cheap worker             |
-| ternary_tiny   | helper tier              |
-| ternary_small  | default worker           |
-| ternary_medium | judge / reasoning        |
-| ternary_large  | premium synthesis        |
-
-Vision models:
-
-* YOLO / RT-DETR
-* CLIP / SigLIP
-* OCR
+- YOLO / RT-DETR (object detection)
+- CLIP / SigLIP (embeddings)
+- OCR (text extraction)
 
 ---
 
-## super-duper-spork
+## Roadmap
 
-Swarm orchestration layer.
+### Phase 1: Event Compression Engine (Foundation)
 
-Handles:
+Build the core compression layer that transforms raw video frames into structured semantic events.
 
-* routing
-* governance
-* cascade selection
-* escalation logic
+**Data Model** — Four key tables:
 
-Pipeline:
+| Table | Examples |
+|-------|---------|
+| Entities | `person_7`, `forklift_2`, `truck_4`, `zone_b`, `door_1` |
+| Events | `entered_zone`, `exited_zone`, `state_change`, `rule_violation`, `interaction` |
+| States | `present`, `moving`, `helmet_missing`, `door_open`, `badge_visible` |
+| Evidence | video clip, keyframes, embeddings, OCR text |
+
+**Event Record Format**:
+
+```json
+{
+  "entity": "person_7",
+  "event": "entered_zone",
+  "zone": "loading_dock",
+  "start_time": "10:03:12",
+  "end_time": "10:03:30",
+  "evidence": {
+    "clip": "camera1/10-03-10_10-03-32.mp4",
+    "frames": [1012, 1034, 1088]
+  }
+}
+```
+
+**Compression Pipeline**:
 
 ```text
-cell → dot → small → medium → large → cloud
+raw frames → keyframe extraction → event graph construction → compressed timeline
 ```
 
-Modules:
+Instead of storing 300 frames, the system stores entity + state + transition + evidence. Target compression ratio: **100x - 1000x** depending on motion complexity.
 
-* `cell_classifier.py`
-* `dot_normalizer.py`
-* `dual_layer.py`
-* `context_management.py`
-* `ai_portal_client.py`
+**Deliverables**: Compression library, storage schema, event format specification.
 
 ---
 
-## Video Swarm (this repository)
+### Phase 2: Perception Pipeline (Triton Vision)
 
-Responsibilities:
+Integrate Triton-hosted vision models to extract structured perception data from video frames.
 
-* video ingestion
-* perception pipelines
-* event compression
-* temporal reasoning
-* video search
-* video generation
-
----
-
-## Quantum-Protocol
-
-Financial trading platform.
-
-AI is used only for:
-
-* alert explanation
-* incident summaries
-* audit commentary
-
-Never for:
-
-* live trading decisions
-* kill switch logic
-
----
-
-## DFIP
-
-Financial infrastructure platform.
-
-Uses swarm models for:
-
-* compliance interpretation
-* support triage
-* document reasoning
-
----
-
-## Constitutional-Tender Web Terminal
-
-User interface.
-
-Uses:
-
-```
-dot → small → medium
-```
-
-for:
-
-* product assistant
-* knowledge search
-* explanations
-* user workflows
-
----
-
-# Video Surveillance
-
-The system monitors video streams to detect events.
-
-Sources:
-
-* CCTV
-* drones
-* body cameras
-* industrial cameras
-* uploaded video
-
-Pipeline:
+**Pipeline**:
 
 ```text
-video
-→ frame sampling
-→ detection models
-→ event compression
-→ reasoning
+video → frame sampling → Triton vision models → structured perception output
 ```
+
+**Components**:
+- Frame sampler with adaptive rate control
+- Object detection via YOLO / RT-DETR on Triton
+- Embedding extraction via CLIP / SigLIP
+- Text extraction via OCR
+- Multi-object tracking across frames
+
+**Performance Target**: 100+ frames/sec on NVIDIA L4 GPU, enabling multiple simultaneous video streams.
+
+**Deliverables**: Perception service, Triton model configurations, frame sampler module.
 
 ---
 
-# Example Surveillance Output
+### Phase 3: Video Surveillance & Monitoring
 
-Example event:
+Build real-time video monitoring with automated event detection and alerting.
 
+**Supported Sources**:
+- CCTV cameras
+- Drones
+- Body cameras
+- Industrial cameras
+- Uploaded video files
+
+**Pipeline**:
+
+```text
+video → frame sampling → detection models → event compression → reasoning → alerts
 ```
+
+**Example Detection Output**:
+
+```text
 10:03:12 — person entered restricted zone
 10:03:15 — helmet missing detected
 10:03:19 — forklift within unsafe distance
 10:03:30 — person exited zone
 ```
 
-Generated alert:
+**Generated Alert**:
 
-```
+```text
 ALERT
 Worker entered restricted area without helmet.
 Forklift was within unsafe proximity.
 Duration: 18 seconds.
 ```
 
+**Use Cases**:
+- **Security**: intrusion detection, suspicious behavior, unauthorized access
+- **Safety**: missing PPE, hazardous proximity, machine safety violations
+- **Operations**: queue monitoring, asset tracking, warehouse logistics
+
+**Deliverables**: Surveillance service, alert API, monitoring dashboard, example deployment.
+
 ---
 
-# Video Search
+### Phase 4: Video Search & Retrieval
 
-Video is converted into searchable events.
+Convert video archives into searchable semantic event databases.
 
-Example query:
+**Pipeline**:
 
+```text
+query → temporal state graph → evidence clips → swarm reasoning → results
 ```
+
+**Example Query**:
+
+```text
 Show all times a forklift approached a person without safety gear.
 ```
 
-Pipeline:
+**Results Include**:
+- Timeline of matching events
+- Evidence video clips
+- Natural language explanation of each match
 
-```
-query
-→ event graph
-→ evidence clips
-→ reasoning
-```
+**Use Cases**:
+- Semantic clip search across large video archives
+- Incident reconstruction from event timelines
+- Compliance audit evidence gathering
 
-Results include:
-
-* timeline
-* clip
-* explanation
+**Deliverables**: Search API, query engine, evidence extraction service.
 
 ---
 
-# Video Creation
+### Phase 5: Event-Structured Video Generation
 
-The platform can also **generate video content**.
+Instead of generating full video frame-by-frame, represent video as structured events and reconstruct the missing frames using GPU inference. This applies the same compression-first philosophy as the ternary model work: **compress the representation first, compute the missing structure second**.
 
-Sources for generation:
-
-* prompts
-* event timelines
-* email threads
-* EDGAR filings
-* incident reports
-
-Example generation:
-
-```
-Create a training video explaining a safety violation scenario.
-```
-
-Pipeline:
-
-```text
-event narrative
-→ scene planner
-→ generation model
-→ rendered video
-```
-
-Possible outputs:
-
-* training simulations
-* incident recreations
-* animated explanations
-* compliance tutorials
-
----
-
-# Compression Model
-
-Raw video is compressed into **semantic events**.
-
-Instead of:
-
-```
-300 frames
-```
-
-The system stores:
-
-```
-entity
-state
-transition
-evidence
-```
-
-Example record:
-
-```json
-{
- "entity": "person_7",
- "event": "entered_zone",
- "zone": "loading_dock",
- "start_time": "10:03:12",
- "end_time": "10:03:30",
- "evidence": {
-  "clip": "camera1/10-03-10_10-03-32.mp4",
-  "frames": [1012,1034,1088]
- }
-}
-```
-
----
-
-# Storage Model
-
-Four key tables.
-
-## Entities
-
-```
-person_7
-forklift_2
-truck_4
-zone_b
-door_1
-```
-
-## Events
-
-```
-entered_zone
-exited_zone
-state_change
-rule_violation
-interaction
-```
-
-## States
-
-```
-present
-moving
-helmet_missing
-door_open
-badge_visible
-```
-
-## Evidence
-
-```
-video clip
-keyframes
-embeddings
-OCR text
-```
-
----
-
-# Performance
-
-Example deployment on **NVIDIA L4 GPU**.
-
-| Model  | Throughput |
-| ------ | ---------- |
-| tiny   | ~150 tok/s |
-| small  | ~90 tok/s  |
-| medium | ~45 tok/s  |
-| large  | ~30 tok/s  |
-
-Vision models can process:
-
-```
-100+ frames/sec
-```
-
-This allows multiple simultaneous video streams.
-
----
-
-# Example Pipeline
-
-```
-camera stream
-→ Triton YOLO
-→ CLIP embeddings
-→ event compression
-→ swarm reasoning
-→ alert / report
-```
-
----
-
-# Use Cases
-
-## Security
-
-* intrusion detection
-* suspicious behavior
-* unauthorized access
-
-## Safety
-
-* missing PPE
-* hazardous proximity
-* machine safety violations
-
-## Operations
-
-* queue monitoring
-* asset tracking
-* warehouse logistics
-
-## Video Search
-
-* semantic clip search
-* incident reconstruction
-* compliance audits
-
-## Video Creation
-
-* training videos
-* scenario simulations
-* instructional media
-* event reconstructions
-
----
-
-# Key Design Principle
-
-The system does **not analyze raw video directly**.
-
-Instead it converts video into:
-
-```
-compressed semantic events
-```
-
-Then performs reasoning on those events.
-
-This enables:
-
-* massive cost reduction
-* scalable analysis
-* explainable results
-
----
-
-The concept discussed was a **compressed event-structured video generation pipeline** using your model compression approach. The idea is to avoid generating every frame and instead represent the video as **key events + inferred transitions**, with **L4 GPUs generating the intermediate frames**.
-
-This fits the same philosophy as your ternary model work: **compress the representation first, compute the missing structure second**.
-
----
-
-# Event-Structured Video Generation Model
-
-Instead of storing or generating full video, the system stores **structural events**.
-
-Basic idea:
-
-```text
-Video
- ↓
-Event Extraction
- ↓
-Keyframes + Motion State
- ↓
-Compressed Timeline
- ↓
-GPU Inference generates missing frames
-```
-
----
-
-# Core Representation
-
-Video becomes a **timeline of events** rather than frames.
-
-Example:
+**Core Representation** — Video becomes a timeline of events:
 
 ```text
 t0  scene_start
@@ -519,9 +233,7 @@ t3  subject_speaks
 t4  scene_end
 ```
 
-Each event contains structured state.
-
-Example event packet:
+**Event Packet Format**:
 
 ```json
 {
@@ -534,254 +246,146 @@ Example event packet:
 }
 ```
 
----
+**Compression**: Instead of 30 fps video, store keyframes + event graph. Everything between keyframes is reconstructed.
 
-# Compression Layer
-
-Instead of:
+**Reconstruction Pipeline**:
 
 ```text
-30 fps video
+event timeline → keyframe anchors → motion vector prediction → frame interpolation → full video
 ```
 
-You store:
+**Reconstruction Algorithm**:
 
 ```text
-keyframes + event graph
+keyframe_A → motion inference → frame_1, frame_2, frame_3 → keyframe_B
 ```
 
-Example:
+**L4 GPU Responsibilities**:
+- Optical flow estimation
+- Diffusion-based frame interpolation
+- Motion field reconstruction
 
-```text
-frame 0
-frame 120
-frame 240
-```
+**Performance Target**: 720p generation at real-time or faster on NVIDIA L4.
 
-Everything between is reconstructed.
-
-Compression ratio target:
-
-```text
-100× – 1000×
-```
-
-depending on motion complexity.
+**Deliverables**: Generation engine, keyframe store, reconstruction model, compressed timeline format.
 
 ---
 
-# Reconstruction Using L4 GPUs
+### Phase 6: Distributed Video Generation (Swarm)
 
-L4 GPUs generate the missing frames.
+Parallelize video generation across multiple GPU nodes using the BUNNY worker fleet.
 
-Pipeline:
+**Segment Scheduling**:
 
 ```text
-Event Timeline
-     ↓
-Keyframe Anchors
-     ↓
-Motion Vector Prediction
-     ↓
-Frame Interpolation Model
-     ↓
-Full Video
+segment 1  (0-5s)   → GPU node A
+segment 2  (5-10s)  → GPU node B
+segment 3  (10-15s) → GPU node C
 ```
 
-The L4 GPU handles:
+**Pipeline**:
 
-* optical flow estimation
-* diffusion interpolation
-* motion field reconstruction
+```text
+timeline → segment scheduler → GPU nodes → merge output → final video
+```
+
+Each worker node reconstructs its assigned segment independently. The merge pipeline stitches segments with seamless transitions.
+
+| Component | Role |
+|-----------|------|
+| Event graph | Compressed structure |
+| Ternary models | Efficient inference |
+| L4 GPUs | Reconstruction compute |
+| Swarm (BUNNY) | Distributed generation |
+
+**Deliverables**: Distributed generation service, segment scheduler, merge pipeline.
 
 ---
 
-# Reconstruction Algorithm
+### Phase 7: Video Creation & Synthesis
 
-Basic process:
+Generate video content from prompts, data sources, and event narratives.
+
+**Input Sources**:
+- Text prompts
+- Event timelines
+- Email threads
+- EDGAR filings
+- Incident reports
+
+**Pipeline**:
 
 ```text
-keyframe_A
-      ↓
-motion inference
-      ↓
-frame_1
-frame_2
-frame_3
-      ↓
-keyframe_B
+event narrative → scene planner → generation model → rendered video
 ```
 
-Instead of generating 30 frames per second independently.
+**Example**:
+
+```text
+Create a training video explaining a safety violation scenario.
+```
+
+**Output Types**:
+- Training simulations
+- Incident recreations
+- Animated explanations
+- Compliance tutorials
+
+**Deliverables**: Creation API, narrative planner, scene renderer.
 
 ---
 
-# Integration With Compression Model
+## Technical Reference
 
-Your compression philosophy applies here:
+### Performance Benchmarks (NVIDIA L4 GPU)
 
-| Component      | Role                   |
-| -------------- | ---------------------- |
-| event graph    | compressed structure   |
-| ternary models | efficient inference    |
-| L4 GPUs        | reconstruction compute |
-| swarm          | distributed generation |
+| Model | Throughput |
+|-------|-----------|
+| tiny | ~150 tok/s |
+| small | ~90 tok/s |
+| medium | ~45 tok/s |
+| large | ~30 tok/s |
+
+Vision models process 100+ frames/sec, enabling multiple simultaneous video streams.
+
+### Example End-to-End Pipeline
+
+```text
+camera stream → Triton YOLO → CLIP embeddings → event compression → swarm reasoning → alert / report
+```
+
+### L4 GPU Capabilities
+
+The NVIDIA L4 GPU is well suited for this workload:
+- Video inference (decode + model forward pass)
+- Optical flow estimation
+- Tensor operations (ternary matmul)
+- Diffusion model inference
+
+### Key Metrics
+
+| Metric | Target |
+|--------|--------|
+| Compression ratio | 100x - 1000x |
+| Vision throughput | 100+ frames/sec |
+| 720p generation | Real-time or faster |
+| Storage reduction | 10-100x vs raw video |
 
 ---
 
-# Distributed Generation (Swarm)
+## Strategic Potential
 
-Video generation can be parallelized.
+This platform evolves into a **temporal reasoning engine** because the system learns:
 
-Example:
+- Motion patterns (how objects typically move)
+- Scene transitions (what follows what)
+- Causal events (what causes what)
 
-```text
-segment 1  (0–5s)
-segment 2  (5–10s)
-segment 3  (10–15s)
-```
+Instead of just processing frames, the system understands **events and their relationships**.
 
-Each node reconstructs a section.
-
-Pipeline:
-
-```text
-timeline
- ↓
-segment scheduler
- ↓
-GPU nodes
- ↓
-merge output
-```
-
----
-
-# Key Technical Insight
-
-Video contains **huge redundancy**.
-
-Typical video:
-
-```text
-30 frames per second
-```
-
-But motion is often continuous.
-
-Event compression exploits this:
-
-```text
-scene structure
-+ motion field
-+ sparse keyframes
-```
-
-instead of raw frames.
-
----
-
-# Where L4 GPUs Fit
-
-L4 is well suited because it excels at:
-
-* video inference
-* optical flow
-* tensor operations
-* diffusion models
-
-Typical performance:
-
-```text
-720p generation
-≈ real-time or faster
-```
-
-depending on model size.
-
----
-
-# System Architecture
-
-```text
-Input Video
-      ↓
-Event Extractor
-      ↓
-Compressed Timeline
-      ↓
-Keyframe Store
-      ↓
-Swarm GPU Reconstruction
-      ↓
-Output Video
-```
-
----
-
-# Why This Matters
-
-Traditional video generation:
-
-```text
-compute heavy
-large storage
-slow training
-```
-
-Your model:
-
-```text
-event compression
-+
-ternary inference
-+
-distributed reconstruction
-```
-
-Potential improvements:
-
-* **10–100× storage reduction**
-* **major compute savings**
-* **scalable generation**
-
----
-
-# Strategic Potential
-
-This approach can evolve into a **temporal reasoning engine**, because the system learns:
-
-* motion patterns
-* scene transitions
-* causal events
-
-Instead of just frames.
-
----
-
-# Relationship to Your Other Work
-
-This aligns with your other systems:
-
-| System                   | Role                   |
-| ------------------------ | ---------------------- |
-| ternary model            | efficient inference    |
-| bunny swarm              | distributed generation |
-| Triton runtime           | kernel execution       |
-| compression architecture | event representation   |
-
----
-
-# Simplified Summary
-
-The concept is:
-
-```text
-Store the events
-Store sparse keyframes
-Let GPUs generate the middle
-```
-
----
-
-
+This enables:
+- Massive cost reduction through event-level reasoning
+- Scalable analysis across large video archives
+- Explainable results (every conclusion traces back to evidence)
+- 10-100x storage reduction vs traditional video processing
+- Distributed generation across GPU worker fleets
