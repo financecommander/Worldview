@@ -6,7 +6,7 @@ class FrameSampler:
     def __init__(self, interval_seconds: float = 1.0):
         self.interval_seconds = interval_seconds
 
-    def sample_frames(self, video_path: str) -> List[Tuple[int, np.ndarray]]:
+    def extract_keyframes(self, video_path: str) -> List[Tuple[int, np.ndarray]]:
         """
         Extract keyframes from a video at specified intervals.
         Returns list of (frame_id, frame_data) tuples.
@@ -17,7 +17,7 @@ class FrameSampler:
 
         fps = cap.get(cv2.CAP_PROP_FPS)
         frame_interval = int(fps * self.interval_seconds)
-        sampled_frames = []
+        keyframes = []
         frame_id = 0
 
         while True:
@@ -25,8 +25,12 @@ class FrameSampler:
             if not ret:
                 break
             if frame_id % frame_interval == 0:
-                sampled_frames.append((frame_id, frame))
+                keyframes.append((frame_id, frame))
             frame_id += 1
 
         cap.release()
-        return sampled_frames
+        return keyframes
+
+    def save_frame(self, frame: np.ndarray, output_path: str):
+        """Save a frame to disk."""
+        cv2.imwrite(output_path, frame)

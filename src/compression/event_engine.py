@@ -11,34 +11,30 @@ class SemanticEvent:
     ocr_text: str
 
 class EventCompressionEngine:
-    def __init__(self):
-        self.model_client = None  # TODO: Wire up Triton client
+    def __init__(self, model_client: Any):
+        self.model_client = model_client
 
-    def compress_frames(self, frames: List[Tuple[int, np.ndarray]]) -> List[SemanticEvent]:
+    async def compress_frame(self, frame_id: int, frame: np.ndarray, timestamp: float) -> SemanticEvent:
         """
-        Convert raw frames into compressed semantic events with detections and embeddings.
+        Compress a single frame into a semantic event with detections, embeddings, and OCR.
         """
+        # TODO: Wire up actual model inference via Triton client
+        detections = await self.model_client.detect_objects(frame)
+        embeddings = await self.model_client.get_embeddings(frame)
+        ocr_text = await self.model_client.extract_text(frame)
+        return SemanticEvent(
+            frame_id=frame_id,
+            timestamp=timestamp,
+            detections=detections or [],
+            embeddings=embeddings if embeddings is not None else np.array([]),
+            ocr_text=ocr_text or ""
+        )
+
+    async def process_video_frames(self, frames: List[Tuple[int, np.ndarray]], fps: float) -> List[SemanticEvent]:
+        """Process a list of frames into semantic events."""
         events = []
         for frame_id, frame in frames:
-            # Placeholder for model inference
-            detections = self._mock_detect_objects(frame)
-            embeddings = self._mock_compute_embeddings(frame)
-            ocr_text = self._mock_ocr(frame)
-            event = SemanticEvent(
-                frame_id=frame_id,
-                timestamp=frame_id / 30.0,  # Assuming 30fps
-                detections=detections,
-                embeddings=embeddings,
-                ocr_text=ocr_text
-            )
+            timestamp = frame_id / fps
+            event = await self.compress_frame(frame_id, frame, timestamp)
             events.append(event)
         return events
-
-    def _mock_detect_objects(self, frame: np.ndarray) -> List[Dict[str, Any]]:
-        return [{'class': 'person', 'bbox': [100, 100, 200, 200], 'confidence': 0.9}]
-
-    def _mock_compute_embeddings(self, frame: np.ndarray) -> np.ndarray:
-        return np.random.rand(512)
-
-    def _mock_ocr(self, frame: np.ndarray) -> str:
-        return "Sample text"
