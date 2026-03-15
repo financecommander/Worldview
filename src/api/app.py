@@ -1,37 +1,36 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, HTTPException
 from typing import List
-import os
-import cv2
-from perception.frame_sampler import FrameSampler
-from compression.event_engine import EventCompressionEngine
-from storage.event_store import SemanticEventStore
+import numpy as np
+from perception.detection import detect_objects
+from compression.embeddings import generate_embeddings
+from storage.search import SemanticSearch
+from generation.video import generate_video
 
-app = FastAPI(title="Worldview Video Intelligence Platform")
+app = FastAPI(title="Worldview API")
+search_db = SemanticSearch()
 
-# TODO: Inject actual Triton client dependency
-model_client = None
-event_engine = EventCompressionEngine(model_client)
-event_store = SemanticEventStore()
-sampler = FrameSampler(interval_seconds=1.0)
+@app.on_event("shutdown")
+async def shutdown_db():
+    search_db.close()
 
-@app.post("/ingest")
-async def ingest_video(file: UploadFile = File(...)):
-    temp_path = f"/tmp/{file.filename}"
-    with open(temp_path, "wb") as f:
-        f.write(await file.read())
+@app.post("/process-video")
+async def process_video(video_frames: List[Any]):
     try:
-        frames = sampler.extract_keyframes(temp_path)
-        cap = cv2.VideoCapture(temp_path)
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()
-        events = await event_engine.process_video_frames(frames, fps)
-        for event in events:
-            event_store.store_event(event)
-        return {"status": "success", "events_processed": len(events)}
-    finally:
-        os.remove(temp_path)
+        # Mock video frames as numpy arrays for now
+        frames = [np.zeros((480, 640, 3)) for _ in range(len(video_frames))]
+        detections = await detect_objects(frames)
+        embeddings = await generate_embeddings(detections)
+        video_id = "test_video"
+        for frame_id, emb in enumerate(embeddings):
+            search_db.store_embedding(video_id, frame_id, emb)
+        generated_path = await generate_video(detections, embeddings)
+        return {"status": "success", "video_path": generated_path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/search")
-async def search_events(query: str, limit: int = 10):
-    results = event_store.search_events(query, limit)
-    return {"results": [r.__dict__ for r in results]}
+@app.post("/search")
+async def search_similar(query: Any):
+    # Mock query embedding
+    query_emb = np.random.rand(128)
+    results = search_db.search_similar(query_emb)
+    return {"results": results}
