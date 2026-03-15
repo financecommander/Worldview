@@ -4,44 +4,35 @@ import numpy as np
 
 @dataclass
 class SemanticEvent:
-    frame_idx: int
+    frame_id: int
     timestamp: float
     objects: List[Dict[str, Any]]
     embeddings: np.ndarray
-    text: str
+    ocr_text: str
 
 class EventCompressionEngine:
-    def __init__(self):
-        self.model_stub = None  # TODO: Wire up Triton client
+    def __init__(self, model_client: Any):
+        self.model_client = model_client
 
-    def compress_frames(self, frames: List[Tuple[int, np.ndarray]]) -> List[SemanticEvent]:
-        """
-        Convert raw frames into compressed semantic events with detections and embeddings.
-        """
+    async def compress_frame(self, frame: np.ndarray, frame_id: int, timestamp: float) -> SemanticEvent:
+        """Compress a single frame into a semantic event."""
+        # TODO: Wire up actual Triton model client for detection and embeddings
+        objects = self.model_client.detect_objects(frame)
+        embeddings = self.model_client.get_embeddings(frame)
+        ocr_text = self.model_client.extract_ocr(frame)
+        return SemanticEvent(
+            frame_id=frame_id,
+            timestamp=timestamp,
+            objects=objects,
+            embeddings=embeddings,
+            ocr_text=ocr_text
+        )
+
+    async def process_video(self, frames: List[np.ndarray], fps: float) -> List[SemanticEvent]:
+        """Process a list of frames into semantic events."""
         events = []
-        for frame_idx, frame in frames:
-            # Placeholder for model inference
-            objects = self._detect_objects(frame)
-            embeddings = self._compute_embeddings(frame)
-            text = self._extract_text(frame)
-            event = SemanticEvent(
-                frame_idx=frame_idx,
-                timestamp=frame_idx / 30.0,  # Assuming 30 FPS
-                objects=objects,
-                embeddings=embeddings,
-                text=text
-            )
+        for i, frame in enumerate(frames):
+            timestamp = i / fps
+            event = await self.compress_frame(frame, i, timestamp)
             events.append(event)
         return events
-
-    def _detect_objects(self, frame: np.ndarray) -> List[Dict[str, Any]]:
-        # TODO: Implement Triton model call for object detection
-        return []
-
-    def _compute_embeddings(self, frame: np.ndarray) -> np.ndarray:
-        # TODO: Implement Triton model call for embeddings
-        return np.zeros(512)
-
-    def _extract_text(self, frame: np.ndarray) -> str:
-        # TODO: Implement OCR via Triton or local model
-        return ""

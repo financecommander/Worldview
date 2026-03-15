@@ -4,45 +4,53 @@ from dataclasses import dataclass
 import json
 
 @dataclass
-class SearchResult:
-    event_id: int
-    frame_idx: int
-    timestamp: float
-    score: float
+class EventQuery:
+    text: str = ''
+    object_type: str = ''
+    time_range: tuple = (0.0, float('inf'))
 
-class SemanticEventStore:
-    def __init__(self, db_path: str = "worldview.db"):
-        self.conn = sqlite3.connect(db_path)
-        self._create_tables()
+class EventStore:
+    def __init__(self, db_path: str = 'events.db'):
+        self.db_path = db_path
+        self._init_db()
 
-    def _create_tables(self):
-        self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                frame_idx INTEGER,
-                timestamp REAL,
-                objects TEXT,
-                embeddings BLOB,
-                text TEXT
-            )
-        """)
-        self.conn.commit()
+    def _init_db(self):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    frame_id INTEGER,
+                    timestamp REAL,
+                    objects TEXT,
+                    embeddings BLOB,
+                    ocr_text TEXT
+                )
+            ''')
 
-    def store_events(self, events: List[Any]):
-        for event in events:
-            self.conn.execute("""
-                INSERT INTO events (frame_idx, timestamp, objects, embeddings, text)
+    def store_event(self, event: Any):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute('''
+                INSERT INTO events (frame_id, timestamp, objects, embeddings, ocr_text)
                 VALUES (?, ?, ?, ?, ?)
-            """, (
-                event.frame_idx,
+            ''', (
+                event.frame_id,
                 event.timestamp,
                 json.dumps(event.objects),
                 event.embeddings.tobytes(),
-                event.text
+                event.ocr_text
             ))
-        self.conn.commit()
+            conn.commit()
 
-    def search_events(self, query: str, limit: int = 10) -> List[SearchResult]:
-        # TODO: Implement semantic search with embeddings
-        cursor = self.conn.execute("SELECT id, frame_idx, timestamp FROM events LIMIT ?", (limit,))
-        return [SearchResult(row[0], row[1], row[2], 1.0) for row in cursor.fetchall()]
+    def search(self, query: EventQuery) -> List[Any]:
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            sql = '''
+                SELECT * FROM events 
+                WHERE timestamp BETWEEN ? AND ?
+            '''
+            params = [query.time_range[0], query.time_range[1]]
+            if query.text:
+                sql += " AND ocr_text LIKE ?"
+                params.append(f"%{query.text}%")
+            cursor.execute(sql, params)
+            return cursor.fetchall()
