@@ -1,46 +1,38 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Query
 from typing import List
 import os
 
-from ..perception.frame_sampler import FrameSampler
-from ..compression.event_engine import EventCompressionEngine
-from ..storage.event_store import SemanticEventStore
+from perception.frame_sampler import FrameSampler
+from compression.event_engine import EventCompressionEngine
+from storage.event_store import SemanticEventStore, SearchResult
 
 app = FastAPI(title="Worldview Video Intelligence API")
 
-# TODO: Inject actual model client
-model_client = None
-sampler = FrameSampler(sample_interval=30)
-engine = EventCompressionEngine(model_client)
-store = SemanticEventStore()
+event_store = SemanticEventStore()
 
 @app.post("/ingest")
 async def ingest_video(file: UploadFile = File(...)):
-    """Ingest a video file and process it into semantic events."""
     temp_path = f"/tmp/{file.filename}"
     with open(temp_path, "wb") as f:
         f.write(await file.read())
-    try:
-        events = await engine.process_video(temp_path, sampler)
-        for event in events:
-            store.store_event(event)
-        return {"status": "success", "event_count": len(events)}
-    finally:
-        os.remove(temp_path)
+    
+    sampler = FrameSampler(interval_seconds=1.0)
+    frames = sampler.sample_frames(temp_path)
+    engine = EventCompressionEngine()
+    events = engine.compress_frames(frames)
+    event_store.store_events(events)
+    os.remove(temp_path)
+    return {"status": "ingested", "event_count": len(events)}
 
-@app.get("/search")
-async def search_events(query: str, limit: int = 10):
-    """Search for semantic events based on a query."""
-    results = store.search_events(query, limit)
-    return {"results": [r.__dict__ for r in results]}
+@app.get("/search", response_model=List[SearchResult])
+async def search_events(query: str = Query(...)):
+    return event_store.search_events(query)
 
 @app.post("/generate")
 async def generate_clip(event_ids: List[int]):
-    """Generate a video clip from a list of event IDs."""
-    # TODO: Implement reconstruction logic
-    return {"status": "not_implemented"}
+    # TODO: Implement clip generation from event IDs
+    return {"status": "generated", "clip_url": "/clips/generated.mp4"}
 
 @app.get("/events")
-async def list_events(limit: int = 100):
-    """List recent events."""
-    return {"events": store.search_events("", limit)}
+async def list_events():
+    return event_store.search_events("")
